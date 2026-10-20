@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { resend } from "../src/lib/resend";
 import app from "./app.js";
 import { prisma } from "./lib/prisma.js";
 

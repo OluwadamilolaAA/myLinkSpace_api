@@ -3,7 +3,8 @@ import type {
   Response,
   NextFunction,
 } from "express";
-import { ForiddenError } from "../common/errors";
+import ForbiddenError from "../common/errors/forbidden-error";
+
 
 const SAFE_METHODS = new Set([
   "GET",
@@ -22,11 +23,14 @@ export function verifyRequestOrigin(
 
   const origin = req.get("origin");
 
-  const allowedOrigin = process.env.CLIENT_ORIGIN;
+  const allowedOrigins = (process.env.CLIENT_ORIGIN ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
 
-  if (!allowedOrigin || origin !== allowedOrigin) {
+  if (!origin || !allowedOrigins.includes(origin)) {
     return next(
-      new ForiddenError("Request origin not allowed")
+      new ForbiddenError("Request origin not allowed")
     );
   }
 

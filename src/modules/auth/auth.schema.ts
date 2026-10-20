@@ -25,3 +25,18 @@ export const loginSchema = z.strictObject({
 
   password: z.string().min(1),
 });
+
+export const forgotPasswordSchema = z.strictObject({
+  email: z.email().trim().toLowerCase().max(255),
+});
+
+export const resetPasswordSchema = z.strictObject({
+  token: z
+    .string()
+    .regex(
+      /^[a-f0-9]{64}$/,
+      "Invalid password reset token"
+    ),
+
+  newPassword: passwordSchema,
+});

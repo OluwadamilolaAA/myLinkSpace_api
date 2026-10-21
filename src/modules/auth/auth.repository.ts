@@ -107,8 +107,7 @@ export class AuthRepository {
 }) {
   return prisma.$transaction(
     async (tx) => {
-      const resetToken =
-        await tx.passwordResetToken.findUnique({
+      const resetToken = await tx.passwordResetToken.findUnique({
           where: { tokenHash: data.tokenHash },
         });
 
@@ -119,8 +118,7 @@ export class AuthRepository {
         return false;
       }
 
-      const claimed =
-        await tx.passwordResetToken.deleteMany({
+      const claimed = await tx.passwordResetToken.deleteMany({
           where: {
             id: resetToken.id,
             expiresAt: { gt: new Date() },

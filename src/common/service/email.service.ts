@@ -1,9 +1,7 @@
 import { resend } from "../../lib/resend";
 
 export class EmailService {
-  async sendPasswordResetEmail(
-    email: string,
-    resetToken: string
+  async sendPasswordResetEmail(email: string, resetToken: string
   ): Promise<void> {
     const from = process.env.EMAIL_FROM;
     const clientOrigin = process.env.CLIENT_ORIGIN;

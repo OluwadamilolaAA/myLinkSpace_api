@@ -4,6 +4,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "./modules/auth/auth.routes";
+import userRoutes from "./modules/user/user.routes";
 import { verifyRequestOrigin } from "./middlewares/csrf.middleware";
 import { errorMiddleware } from "./middlewares/error.middleware";
 
@@ -34,6 +35,7 @@ app.get("/api/v1/health", (_req, res) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/user", userRoutes);
 app.use(errorMiddleware)
 
 export default app;

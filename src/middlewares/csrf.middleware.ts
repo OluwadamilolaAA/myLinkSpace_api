@@ -1,10 +1,5 @@
-import type {
-  Request,
-  Response,
-  NextFunction,
-} from "express";
+import type {Request, Response, NextFunction,} from "express";
 import ForbiddenError from "../common/errors/forbidden-error";
-
 
 const SAFE_METHODS = new Set([
   "GET",
@@ -12,11 +7,7 @@ const SAFE_METHODS = new Set([
   "OPTIONS",
 ]);
 
-export function verifyRequestOrigin(
-  req: Request,
-  _res: Response,
-  next: NextFunction
-) {
+export function verifyRequestOrigin(req: Request, _res: Response, next: NextFunction) {
   if (SAFE_METHODS.has(req.method)) {
     return next();
   }

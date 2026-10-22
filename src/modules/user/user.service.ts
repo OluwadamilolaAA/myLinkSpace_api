@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { UserRepository } from "./user.repository";
-import { UnauthorizedError } from "../../common/errors";
+import {NotFoundError, UnauthorizedError } from "../../common/errors";
 import { ChangePasswordInput, DeleteAccountInput, UpdateProfileInput } from "./user.types";
 
 export class UserService {
@@ -9,7 +9,7 @@ export class UserService {
     const user = await this.repository.findById(userId);
 
     if (!user) {
-      throw new UnauthorizedError("User no longer exists");
+      throw new NotFoundError("User not found");
     }
     return user;
   }
@@ -23,7 +23,7 @@ export class UserService {
     const user = await this.repository.findWithPassword(userId);
 
     if (!user) {
-      throw new UnauthorizedError("User no longer exists");
+      throw new NotFoundError("User no longer exists");
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -44,6 +44,21 @@ export class UserService {
   }
 
   async deleteAccount(userId: string, data: DeleteAccountInput) {
-    const user = 
+    const user = await this.repository.findWithPassword(userId);
+
+    if (!user) {
+      throw new NotFoundError("User no longer exists");
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      data.password,
+      user.passwordHash,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedError("Password is incorrect");
+    }
+
+    await this.repository.deleteAccount(userId);
   }
 }

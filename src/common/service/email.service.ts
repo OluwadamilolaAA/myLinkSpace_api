@@ -1,7 +1,9 @@
-import { resend } from "../../lib/resend";
+import { resend } from "../../lib/resend.js";
 
 export class EmailService {
-  async sendPasswordResetEmail(email: string, resetToken: string
+  async sendPasswordResetEmail(
+    email: string,
+    resetToken: string,
   ): Promise<void> {
     const from = process.env.EMAIL_FROM;
     const clientOrigin = process.env.CLIENT_ORIGIN;
@@ -10,14 +12,11 @@ export class EmailService {
       throw new Error("Email configuration is incomplete");
     }
 
-    const resetUrl = new URL(
-      "/reset-password",
-      clientOrigin
-    );
+    const resetUrl = new URL("/reset-password", clientOrigin);
 
     resetUrl.searchParams.set("token", resetToken);
 
-    const { error } = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from,
       to: email,
       subject: "Reset your MyLinkSpace password",
@@ -32,7 +31,18 @@ export class EmailService {
     });
 
     if (error) {
-      throw new Error("Password reset email could not be sent");
+      console.error("Resend email delivery error:", {
+        name: error.name,
+        message: error.message,
+      });
+
+      throw new Error("Password reset email could not be sent", {
+        cause: error,
+      });
     }
+
+    console.log("Password reset email accepted by Resend:", {
+      emailId: data?.id,
+    });
   }
 }

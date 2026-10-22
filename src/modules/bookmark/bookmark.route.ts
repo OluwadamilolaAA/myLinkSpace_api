@@ -4,55 +4,60 @@ import { BookmarkController } from "./bookmark.controller.js";
 
 import { authenticate } from "../../middlewares/auth.middleware.js";
 
-import { validateBody } from "../../middlewares/validate.middleware.js";
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from "../../middlewares/validate.middleware.js";
 
 import {
   createBookmarkSchema,
   updateBookmarkSchema,
   bookmarkParamsSchema,
+  listBookmarksSchema,
 } from "./bookmark.schema.js";
 
 const router = Router();
-
 const controller = new BookmarkController();
 
-const validateBookmarkId = (
-  req: import("express").Request,
-  _res: import("express").Response,
-  next: import("express").NextFunction,
-) => {
-  const result = bookmarkParamsSchema.safeParse(req.params);
-
-  if (!result.success) {
-    return next(result.error);
-  }
-
-  next();
-};
-
-// All bookmark routes require authentication
+// Protect all bookmark endpoints
 router.use(authenticate);
 
-router.get("/", controller.list);
+// List bookmarks with validated query parameters
+router.get("/", validateQuery(listBookmarksSchema), controller.list);
 
+// Create a bookmark
 router.post("/", validateBody(createBookmarkSchema), controller.create);
 
+// Restore all archived bookmarks
 router.patch("/restore-all", controller.restoreAll);
 
-router.get("/:id", validateBookmarkId, controller.getById);
+// Get a bookmark by ID
+router.get("/:id", validateParams(bookmarkParamsSchema), controller.getById);
 
+// Update a bookmark
 router.patch(
   "/:id",
-  validateBookmarkId,
+  validateParams(bookmarkParamsSchema),
   validateBody(updateBookmarkSchema),
   controller.update,
 );
 
-router.delete("/:id", validateBookmarkId, controller.delete);
+// Delete a bookmark
+router.delete("/:id", validateParams(bookmarkParamsSchema), controller.delete);
 
-router.patch("/:id/archive", validateBookmarkId, controller.archive);
+// Archive a bookmark
+router.patch(
+  "/:id/archive",
+  validateParams(bookmarkParamsSchema),
+  controller.archive,
+);
 
-router.patch("/:id/restore", validateBookmarkId, controller.restore);
+// Restore an archived bookmark
+router.patch(
+  "/:id/restore",
+  validateParams(bookmarkParamsSchema),
+  controller.restore,
+);
 
 export default router;
-

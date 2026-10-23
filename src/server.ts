@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { resend } from "../src/lib/resend";
+
 import app from "./app.js";
 import { prisma } from "./lib/prisma.js";
 
@@ -7,30 +7,55 @@ const PORT = Number(process.env.PORT) || 5000;
 
 async function bootstrap() {
   try {
+    // Establish database connection
     await prisma.$connect();
 
     console.log("Database connected successfully");
 
+    // Start the HTTP server
     const server = app.listen(PORT, () => {
-      console.log(
-        `MyLinkSpace API running on http://localhost:${PORT}`
-      );
+      console.log(`MyLinkSpace API running on http://localhost:${PORT}`);
     });
 
-    async function shutdown() {
-      server.close(async () => {
-        await prisma.$disconnect();
-        process.exit(0);
+    // Gracefully stop the application
+    async function shutdown(signal: string) {
+      console.log(`${signal} received. Shutting down...`);
+
+      server.close(async (error) => {
+        try {
+          await prisma.$disconnect();
+
+          if (error) {
+            console.error("HTTP server shutdown error:", error);
+            process.exitCode = 1;
+          } else {
+            console.log("Application shut down successfully");
+            process.exitCode = 0;
+          }
+        } catch (disconnectError) {
+          console.error("Database disconnection failed:", disconnectError);
+
+          process.exitCode = 1;
+        }
       });
     }
 
-    process.on("SIGINT", shutdown);
-    process.on("SIGTERM", shutdown);
+    process.once("SIGINT", () => {
+      void shutdown("SIGINT");
+    });
+
+    process.once("SIGTERM", () => {
+      void shutdown("SIGTERM");
+    });
   } catch (error) {
     console.error("Failed to start application:", error);
-    await prisma.$disconnect();
-    process.exit(1);
+
+    await prisma.$disconnect().catch((disconnectError) => {
+      console.error("Database disconnection failed:", disconnectError);
+    });
+
+    process.exitCode = 1;
   }
 }
 
-bootstrap();
+void bootstrap();
